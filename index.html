@@ -517,59 +517,57 @@
         }
 
         // XỬ LÝ KẾT NỐI API ĐĂNG KÝ / ĐĂNG NHẬP VỚI GOOGLE APPS SCRIPT
-        function handleAuthSubmit() {
-            const user = document.getElementById('authUsername').value.trim();
-            const pass = document.getElementById('authPassword').value.trim();
-            const loadingText = document.getElementById('authLoadingText');
-            const btnSubmit = document.getElementById('btnSubmitAuth');
+        // XỬ LÝ KẾT NỐI API ĐĂNG KÝ / ĐĂNG NHẬP VỚI GOOGLE APPS SCRIPT
+function handleAuthSubmit() {
+    const user = document.getElementById('authUsername').value.trim();
+    const pass = document.getElementById('authPassword').value.trim();
+    const loadingText = document.getElementById('authLoadingText');
+    const btnSubmit = document.getElementById('btnSubmitAuth');
 
-            if (!user || !pass) { alert("Vui lòng điền đầy đủ tài khoản và mật khẩu!"); return; }
+    if (!user || !pass) { alert("Vui lòng điền đầy đủ tài khoản và mật khẩu!"); return; }
 
-            // Hiển thị trạng thái chờ tải
-            loadingText.style.display = 'block';
-            btnSubmit.disabled = true;
+    loadingText.style.display = 'block';
+    btnSubmit.disabled = true;
 
-            // Đóng gói dữ liệu gửi sang Apps Script
-            const payload = {
-                action: currentAuthMode,
-                username: user,
-                password: pass
-            };
+    // Chuẩn hóa dữ liệu sang dạng URL-Encoded để triệt tiêu lỗi CORS hoàn toàn
+    const formData = new URLSearchParams();
+    formData.append('action', currentAuthMode);
+    formData.append('username', user);
+    formData.append('password', pass);
 
-            // Gọi API chuẩn hóa kiểu dữ liệu URL-Encoded để vượt qua kiểm soát CORS của Apps Script công cộng
-            fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(response => {
-                loadingText.style.display = 'none';
-                btnSubmit.disabled = false;
+    fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: formData.toString()
+    })
+    .then(res => res.json())
+    .then(response => {
+        loadingText.style.display = 'none';
+        btnSubmit.disabled = false;
 
-                if (response.status === "success") {
-                    alert(response.message);
-                    closeModal('authModal');
-                    
-                    if (currentAuthMode === "login") {
-                        // Trạng thái sau khi đăng nhập thành công
-                        document.getElementById('authBoxUnlogged').style.display = 'none';
-                        document.getElementById('authBoxLoggedIn').style.display = 'block';
-                        document.getElementById('txtUsername').innerText = user;
-                    } else {
-                        // Đăng ký xong tự động chuyển sang cấu trúc đăng nhập
-                        openAuthModal('login');
-                    }
-                } else {
-                    alert("Thất bại: " + response.message);
-                }
-            })
-            .catch(err => {
-                loadingText.style.display = 'none';
-                btnSubmit.disabled = false;
-                alert("Lỗi kết nối Server Apps Script: " + err);
-            });
+        if (response.status === "success") {
+            alert(response.message);
+            closeModal('authModal');
+            
+            if (currentAuthMode === "login") {
+                document.getElementById('authBoxUnlogged').style.display = 'none';
+                document.getElementById('authBoxLoggedIn').style.display = 'block';
+                document.getElementById('txtUsername').innerText = user;
+            } else {
+                openAuthModal('login');
+            }
+        } else {
+            alert("Thất bại: " + response.message);
         }
-
+    })
+    .catch(err => {
+        loadingText.style.display = 'none';
+        btnSubmit.disabled = false;
+        alert("Lỗi kết nối Server Apps Script: " + err);
+    });
+}
         function logoutUser() {
             document.getElementById('authBoxUnlogged').style.display = 'block';
             document.getElementById('authBoxLoggedIn').style.display = 'none';
