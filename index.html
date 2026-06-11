@@ -529,7 +529,6 @@ function handleAuthSubmit() {
     loadingText.style.display = 'block';
     btnSubmit.disabled = true;
 
-    // Chuẩn hóa dữ liệu sang dạng URL-Encoded để triệt tiêu lỗi CORS hoàn toàn
     const formData = new URLSearchParams();
     formData.append('action', currentAuthMode);
     formData.append('username', user);
@@ -550,6 +549,10 @@ function handleAuthSubmit() {
         if (response.status === "success") {
             alert(response.message);
             closeModal('authModal');
+            
+            // ✨ DÒNG CODE MỚI: Xóa sạch dữ liệu ô input ngay khi Đăng ký/Đăng nhập thành công
+            document.getElementById('authUsername').value = '';
+            document.getElementById('authPassword').value = '';
             
             if (currentAuthMode === "login") {
                 document.getElementById('authBoxUnlogged').style.display = 'none';
