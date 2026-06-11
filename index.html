@@ -577,6 +577,46 @@ function handleAuthSubmit() {
             document.getElementById('txtUsername').innerText = "Khách";
             alert("Đã đăng xuất tài khoản!");
         }
+        
+let shopConfig = {};
+// 1. HÀM TỰ ĐỘNG LOAD SẢN PHẨM TỪ GOOGLE SHEET KHI MỞ WEB
+window.onload = function() {
+    fetch(APPS_SCRIPT_URL)
+    .then(res => res.json())
+    .then(data => {
+        shopConfig = data.config;
+        renderProducts(data.products);
+        // Cập nhật tên shop từ Sheet
+        document.querySelector('.shop-logo').innerText = shopConfig.TenShop;
+    });
+};
+
+// 2. HÀM HIỂN THỊ SẢN PHẨM (Xử lý cả phần hết hàng)
+function renderProducts(products) {
+    const grid = document.getElementById('products-grid');
+    grid.innerHTML = '';
+    
+    products.forEach(p => {
+        const isOutOfStock = p.stock === false || p.stock === "FALSE";
+        grid.innerHTML += `
+            <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}">
+                <div class="product-img-box">
+                    <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+                    ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
+                </div>
+                <div class="product-info">
+                    <h3>${p.name}</h3>
+                    <p class="price">${Number(p.price).toLocaleString()} đ</p>
+                    <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} 
+                        onclick="addToCart('${p.name}', ${p.price})">
+                        ${isOutOfStock ? 'Tạm hết hàng' : 'Thêm vào giỏ'}
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
+        
     </script>
 </body>
 </html>
