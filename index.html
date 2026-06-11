@@ -7,14 +7,16 @@
     <style>
         :root {
             --primary-color: #ff7d7d;
+            --primary-hover: #ef6a6a;
             --accent-color: #ffb3b3;
             --bg-color: #fff9f9;
             --card-bg: #ffffff;
             --text-main: #4a3b3b;
             --text-muted: #8a7575;
+            --border-color: #ffebeb;
         }
         
-        * { box-sizing: border-box; transition: all 0.2s ease-in-out; }
+        * { box-sizing: border-box; transition: all 0.25s ease-in-out; }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -25,29 +27,44 @@
             line-height: 1.6;
         }
 
-        /* Thanh điều hướng thượng tầng */
+        /* Thanh điều hướng hiện đại */
         .top-nav {
             background-color: #ffffff;
-            padding: 10px 20px;
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #ffebeb;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(255,125,125,0.02);
+        }
+        
+        .shop-logo {
+            font-weight: 800; 
+            color: var(--primary-color); 
+            font-size: 20px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
         
         .auth-buttons .btn-auth {
             background: none;
             border: 1px solid var(--primary-color);
             color: var(--primary-color);
-            padding: 6px 15px;
-            border-radius: 15px;
+            padding: 8px 20px;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 600;
-            margin-left: 5px;
+            margin-left: 8px;
         }
         
         .auth-buttons .btn-auth.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(255,125,125,0.2);
+        }
+
+        .auth-buttons .btn-auth:hover {
             background-color: var(--primary-color);
             color: white;
         }
@@ -57,6 +74,9 @@
             font-size: 14px;
             font-weight: 600;
             color: #28a745;
+            background-color: #e8f5e9;
+            padding: 6px 15px;
+            border-radius: 50px;
         }
 
         .btn-logout {
@@ -66,106 +86,163 @@
             cursor: pointer;
             margin-left: 10px;
             text-decoration: underline;
+            font-weight: normal;
         }
 
         header {
             background: linear-gradient(135deg, #ffe5e5 0%, #fff0f0 100%);
             text-align: center;
-            padding: 40px 20px;
+            padding: 50px 20px;
             border-bottom: 1px solid #ffd5d5;
         }
 
         header h1 {
             margin: 0;
             color: var(--primary-color);
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        header p {
+            margin: 10px 0 0 0;
+            color: var(--text-muted);
+            font-size: 15px;
+            font-style: italic;
         }
 
+        /* Bố cục trang chủ */
         .main-layout {
             max-width: 1200px;
-            margin: 30px auto;
+            margin: 40px auto;
             padding: 0 20px;
             display: grid;
             grid-template-columns: 2.5fr 1.2fr;
-            gap: 30px;
+            gap: 35px;
         }
 
         @media (max-width: 992px) {
             .main-layout { grid-template-columns: 1fr; }
         }
 
+        /* Grid danh sách sản phẩm */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 20px;
+            gap: 25px;
         }
 
         .product-card {
             background: var(--card-bg);
-            border: 1px solid #ffebeb;
+            border: 1px solid var(--border-color);
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 20px rgba(255,125,125,0.02);
+            box-shadow: 0 10px 25px rgba(255,125,125,0.02);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: relative;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(255,125,125,0.1);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(255,125,125,0.08);
             border-color: var(--accent-color);
         }
 
         .product-img-box {
             width: 100%;
-            height: 180px;
-            background: #fff0f0;
+            height: 220px;
+            background: #fffbfb;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 50px;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .product-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .product-info {
-            padding: 15px;
+            padding: 20px;
             text-align: center;
         }
 
         .product-title {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 8px;
-            height: 44px;
+            margin: 0 0 10px 0;
+            color: var(--text-main);
+            height: 48px;
             overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .product-price {
             color: var(--primary-color);
             font-weight: 700;
             font-size: 18px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
 
         .btn-buy {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border-radius: 50px;
             font-size: 13px;
             cursor: pointer;
             font-weight: bold;
             width: 100%;
+            box-shadow: 0 4px 10px rgba(255,125,125,0.15);
         }
 
+        .btn-buy:hover {
+            background-color: var(--primary-hover);
+            box-shadow: 0 6px 15px rgba(255,125,125,0.3);
+        }
+        
+        /* Trạng thái hết hàng */
+        .product-card.out-of-stock {
+            opacity: 0.65;
+        }
+        .product-card.out-of-stock:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        .sold-out-badge {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .btn-buy:disabled {
+            background-color: #bdc3c7 !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+        }
+
+        /* Sidebar điều hướng phụ */
         .sidebar-box {
             background: var(--card-bg);
-            border: 1px solid #ffebeb;
+            border: 1px solid var(--border-color);
             border-radius: 20px;
-            padding: 20px;
+            padding: 25px;
             margin-bottom: 25px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.01);
         }
@@ -174,23 +251,25 @@
             margin-top: 0;
             font-size: 18px;
             border-bottom: 2px solid #fff0f0;
-            padding-bottom: 10px;
+            padding-bottom: 12px;
+            color: var(--text-main);
         }
 
         .cart-item {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            padding: 8px 0;
+            align-items: center;
+            font-size: 14px;
+            padding: 10px 0;
             border-bottom: 1px dashed #fff0f0;
         }
 
         .checkout-form input, .checkout-form textarea {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ffebeb;
-            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
             font-size: 13px;
             background-color: #fffcfc;
         }
@@ -198,29 +277,33 @@
         .checkout-form input:focus, .checkout-form textarea:focus {
             border-color: var(--primary-color);
             outline: none;
+            background-color: #ffffff;
         }
 
         .btn-checkout {
             background: linear-gradient(90deg, #28a745 0%, #218838 100%);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 14px 20px;
             border-radius: 50px;
             font-size: 15px;
             cursor: pointer;
             font-weight: bold;
             width: 100%;
-            box-shadow: 0 4px 10px rgba(40,167,69,0.2);
+            box-shadow: 0 5px 15px rgba(40,167,69,0.2);
+        }
+        
+        .btn-checkout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(40,167,69,0.35);
         }
 
-        /* ----------------------------
-           POPUP MODAL CHUNG CHO QR & AUTH 
-        ---------------------------- */
+        /* Hộp thoại Pop-up chung */
         .custom-modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.55);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -229,26 +312,27 @@
 
         .modal-content-box {
             background-color: white;
-            padding: 25px;
-            border-radius: 20px;
-            max-width: 400px;
+            padding: 30px;
+            border-radius: 24px;
+            max-width: 420px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
             position: relative;
         }
 
         .modal-content-box h3 {
             margin-top: 0;
+            font-size: 22px;
             color: var(--text-main);
         }
 
         .modal-content-box input {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 12px;
-            border: 1px solid #ffebeb;
-            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             font-size: 14px;
         }
 
@@ -256,13 +340,18 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 14px;
             width: 100%;
             border-radius: 50px;
             font-size: 15px;
             font-weight: bold;
             cursor: pointer;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(255,125,125,0.2);
+        }
+        
+        .btn-submit-auth:hover {
+            background-color: var(--primary-hover);
         }
 
         .toggle-auth-link {
@@ -273,99 +362,87 @@
         }
 
         .qr-code-img {
-            width: 220px;
-            height: 220px;
-            margin: 15px auto;
-            background-color: #f5f5f5;
+            width: 240px;
+            height: 240px;
+            margin: 20px auto;
+            background-color: #fafafa;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #eee;
+            border: 1px solid #f0f0f0;
+            border-radius: 16px;
+            padding: 10px;
         }
 
         .bank-details {
             background-color: #fdf5f5;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 15px;
+            border-radius: 14px;
             font-size: 14px;
             text-align: left;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            border: 1px dashed #ffd5d5;
         }
 
         .btn-close-modal {
-            background-color: #6c757d;
+            background-color: #7f8c8d;
             color: white;
             border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
+            padding: 10px 25px;
+            border-radius: 50px;
             cursor: pointer;
-            margin-top: 5px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .btn-close-modal:hover {
+            background-color: #95a5a6;
+        }
+
+        /* Màn hình chờ tải */
+        #shop-loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: var(--primary-color);
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
 
-    <!-- THANH ĐIỀU HƯỚNG TÀI KHOẢN -->
     <div class="top-nav">
-        <div style="font-weight: bold; color: var(--primary-color); font-size: 16px;">Duhane Shop</div>
+        <div class="shop-logo" id="txtShopLogo">DUHANE SHOP</div>
         
-        <!-- Cụm nút khi chưa đăng nhập -->
         <div class="auth-buttons" id="authBoxUnlogged">
             <button class="btn-auth" onclick="openAuthModal('register')">Đăng Ký</button>
             <button class="btn-auth active" onclick="openAuthModal('login')">Đăng Nhập</button>
         </div>
         
-        <!-- Cụm chữ khi đã đăng nhập thành công -->
         <div class="user-logged-in" id="authBoxLoggedIn">
-            Chào, <span id="txtUsername">Khách</span>!
+            Chào, ✨<span id="txtUsername">Khách</span>✨!
             <button class="btn-logout" onclick="logoutUser()">Đăng xuất</button>
         </div>
     </div>
 
     <header>
-        <h1>Duhane Makeup Tools</h1>
-        <p>✨ Đẹp chuẩn từng nét cọ - Thanh toán quét QR tiện lợi trong 3 giây ✨</p>
+        <h1 id="txtHeaderTitle">DUHANE SHOP</h1>
+        <p>✨ Đẹp chuẩn từng nét cọ - Đồng bộ kho hàng quản lý thông minh tự động ✨</p>
     </header>
 
     <div class="main-layout">
-        <!-- DANH SÁCH SẢN PHẨM MẪU -->
-        <div class="products-grid">
-            <div class="product-card">
-                <div class="product-img-box">🖌️</div>
-                <div class="product-info">
-                    <div class="product-title">Bộ Cọ Chuyên Nghiệp Cao Cấp (5 Món)</div>
-                    <div class="product-price">250.000 đ</div>
-                    <button class="btn-buy" onclick="addToCart('Bộ Cọ Cao Cấp', 250000)">Thêm vào giỏ</button>
-                </div>
-            </div>
-
-            <div class="product-card">
-                <div class="product-img-box">🥚</div>
-                <div class="product-info">
-                    <div class="product-title">Bông Mút Hồ Lô Tán Nền Siêu Mịn</div>
-                    <div class="product-price">65.000 đ</div>
-                    <button class="btn-buy" onclick="addToCart('Bông Mút Hồ Lô', 65000)">Thêm vào giỏ</button>
-                </div>
-            </div>
-
-            <div class="product-card">
-                <div class="product-img-box">🪞</div>
-                <div class="product-info">
-                    <div class="product-title">Gương Trang Điểm Để Bàn Đèn LED</div>
-                    <div class="product-price">195.000 đ</div>
-                    <button class="btn-buy" onclick="addToCart('Gương Đèn LED', 195000)">Thêm vào giỏ</button>
-                </div>
-            </div>
+        <div>
+            <div id="shop-loading">🔄 Đang đồng bộ sản phẩm từ hệ thống Google Sheet...</div>
+            <div class="products-grid" id="products-grid"></div>
         </div>
 
-        <!-- BÊN PHẢI: GIỎ HÀNG & THÔNG TIN ĐỊA CHỈ -->
         <div>
             <div class="sidebar-box">
                 <h2>Giỏ hàng của bạn</h2>
                 <div id="cart-items">
-                    <p style="color: #aaa; font-style: italic; text-align: center;">Giỏ hàng trống.</p>
+                    <p style="color: #aaa; font-style: italic; text-align: center; margin: 15px 0;">Giỏ hàng trống.</p>
                 </div>
-                <div style="display:flex; justify-content:space-between; font-weight:bold; margin-top:15px;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold; margin-top:20px; font-size:16px;">
                     <span>Tổng cộng:</span>
                     <span id="total-price" style="color:var(--primary-color)">0 đ</span>
                 </div>
@@ -375,26 +452,25 @@
                 <h2>Thông tin nhận hàng</h2>
                 <div class="checkout-form">
                     <input type="text" id="cus-name" placeholder="Họ và tên người nhận" required>
-                    <input type="tel" id="cus-phone" placeholder="Số điện thoại" required>
-                    <textarea id="cus-address" rows="3" placeholder="Địa chỉ giao hàng chi tiết..." required></textarea>
+                    <input type="tel" id="cus-phone" placeholder="Số điện thoại liên hệ" required>
+                    <textarea id="cus-address" rows="3" placeholder="Địa chỉ giao hàng chi tiết (Số nhà, Ngõ, Tỉnh/Thành phố)..." required></textarea>
                     <button class="btn-checkout" onclick="processOrder()">Thanh Toán Ngay</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- POPUP 1: FORM ĐĂNG KÝ / ĐĂNG NHẬP -->
     <div class="custom-modal" id="authModal">
         <div class="modal-content-box">
             <h3 id="authModalTitle">Đăng Nhập Hệ Thống</h3>
-            <p id="authLoadingText" style="color: var(--primary-color); display: none; font-weight: bold;">Đang xử lý dữ liệu với Google Sheet...</p>
+            <p id="authLoadingText" style="color: var(--primary-color); display: none; font-weight: bold; font-size:14px;">⏳ Đang kết nối xác thực dữ liệu...</p>
             
             <input type="text" id="authUsername" placeholder="Tên tài khoản / Email">
             <input type="password" id="authPassword" placeholder="Mật khẩu">
             
             <button class="btn-submit-auth" id="btnSubmitAuth" onclick="handleAuthSubmit()">Xác Nhận</button>
             
-            <div style="margin-top: 10px;">
+            <div style="margin-top: 12px;">
                 <span id="authToggleText">Chưa có tài khoản? </span>
                 <span class="toggle-auth-link" id="authToggleLink" onclick="toggleAuthMode()">Đăng ký ngay</span>
             </div>
@@ -403,20 +479,19 @@
         </div>
     </div>
 
-    <!-- POPUP 2: HIỂN THỊ MÃ QR THANH TOÁN -->
     <div class="custom-modal" id="qrModal">
         <div class="modal-content-box">
-            <h3 style="margin-top:0; color:#28a745;">Mã QR Thanh Toán Đơn Hàng</h3>
-            <p style="font-size:12px; color:#666;">Quét QR bằng app ngân hàng của bạn để hoàn tất.</p>
+            <h3 style="margin-top:0; color:#28a745;">Mã QR Thanh Toán Tự Động</h3>
+            <p style="font-size:12px; color:#666;">Hệ thống đã tự điền STK, Số tiền và Nội dung. Bạn chỉ cần quét mã.</p>
             
-            <div class="qr-code-img" id="qrCodeBox">Đang tạo mã QR...</div>
+            <div class="qr-code-img" id="qrCodeBox">Đang cấu trúc mã QR...</div>
 
             <div class="bank-details">
-                <strong>Ngân hàng:</strong> MB BANK (Quân Đội)<br>
-                <strong>Số tài khoản:</strong> 0987654321<br>
-                <strong>Chủ tài khoản:</strong> NGUYEN VAN DU HANE<br>
+                <strong>Ngân hàng:</strong> <span id="lblBank">...</span><br>
+                <strong>Số tài khoản:</strong> <span id="lblSTK">...</span><br>
+                <strong>Chủ tài khoản:</strong> <span id="lblTenTK">...</span><br>
                 <strong>Số tiền:</strong> <span id="modal-money" style="color:red; font-weight:bold;">0 đ</span><br>
-                <strong>Nội dung:</strong> <span id="modal-content" style="font-weight:bold; color:blue;">DH123456</span>
+                <strong>Nội dung:</strong> <span id="modal-content" style="font-weight:bold; color:blue;">...</span>
             </div>
 
             <button class="btn-close-modal" onclick="closeModal('qrModal')">Đóng cửa sổ</button>
@@ -424,13 +499,69 @@
     </div>
 
     <script>
-        // 🌟 LINK GOOGLE APPS SCRIPT WEB APP CỦA BẠN (Thay chuỗi XXXX bằng link Deploy của bạn)
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbRr3OTPxRjkVHL5hG7qu4h4ohsfGzjKzhGH3NHosU67I98vuNh2cKmzq-t3zeL8A9bw/exec"; 
 
         let cart = [];
-        let currentAuthMode = "login"; // Mặc định chế độ mở lên ban đầu là 'login' hoặc 'register'
+        let currentAuthMode = "login";
+        let shopConfig = {}; // Lưu cấu hình QR động lấy từ Sheet
 
-        // QUẢN LÝ GIỎ HÀNG VÀ THANH TOÁN
+        // 🌟 TỰ ĐỘNG ĐỒNG BỘ DỮ LIỆU TỪ SHEET KHI MỞ TRANG WEB
+        window.onload = function() {
+            fetch(APPS_SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "success") {
+                    shopConfig = data.config;
+                    
+                    // Cập nhật thương hiệu tĩnh trên giao diện
+                    document.getElementById('txtShopLogo').innerText = shopConfig.TenShop || "DUHANE SHOP";
+                    document.getElementById('txtHeaderTitle').innerText = shopConfig.TenShop || "DUHANE SHOP";
+                    
+                    // Tắt màn hình chờ và render sản phẩm thật
+                    document.getElementById('shop-loading').style.display = 'none';
+                    renderProducts(data.products);
+                } else {
+                    document.getElementById('shop-loading').innerText = "❌ Lỗi đồng bộ dữ liệu: " + data.message;
+                }
+            })
+            .catch(err => {
+                document.getElementById('shop-loading').innerText = "❌ Không thể kết nối với Server Google Sheets.";
+                console.error(err);
+            });
+        };
+
+        // RENDER DANH SÁCH SẢN PHẨM (Xử lý ảnh thực tế & Đánh dấu hết hàng)
+        function renderProducts(products) {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            
+            if(!products || products.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#aaa; font-style:italic;">Hiện tại shop chưa đăng sản phẩm nào.</p>';
+                return;
+            }
+            
+            products.forEach(p => {
+                const isOutOfStock = p.stock === false || p.stock === "FALSE";
+                grid.innerHTML += `
+                    <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}">
+                        <div class="product-img-box">
+                            <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">
+                            ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
+                        </div>
+                        <div class="product-info">
+                            <div class="product-title">${p.name}</div>
+                            <div class="product-price">${Number(p.price).toLocaleString('vi-VN')} đ</div>
+                            <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} 
+                                onclick="addToCart('${p.name}', ${p.price})">
+                                ${isOutOfStock ? 'Tạm Hết Hàng' : 'Thêm vào giỏ'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // QUẢN LÝ GIỎ HÀNG
         function addToCart(name, price) {
             const existingItem = cart.find(item => item.name === name);
             if (existingItem) { existingItem.quantity += 1; } 
@@ -444,7 +575,7 @@
             let total = 0;
 
             if (cart.length === 0) {
-                cartItemsDiv.innerHTML = '<p style="color: #aaa; font-style: italic; text-align: center;">Giỏ hàng trống.</p>';
+                cartItemsDiv.innerHTML = '<p style="color: #aaa; font-style: italic; text-align: center; margin: 15px 0;">Giỏ hàng trống.</p>';
                 totalPriceSpan.innerText = '0 đ';
                 return;
             }
@@ -454,7 +585,7 @@
                 total += item.price * item.quantity;
                 cartItemsDiv.innerHTML += `
                     <div class="cart-item">
-                        <span>${item.name} (x${item.quantity})</span>
+                        <span><strong>${item.name}</strong> <small style="color:#8a7575">(x${item.quantity})</small></span>
                         <span>${(item.price * item.quantity).toLocaleString('vi-VN')} đ</span>
                     </div>
                 `;
@@ -462,29 +593,38 @@
             totalPriceSpan.innerText = total.toLocaleString('vi-VN') + ' đ';
         }
 
+        // XỬ LÝ THANH TOÁN VÀ TẠO QR ĐỘNG TỰ ĐỘNG TỪ SHEET
         function processOrder() {
-            const name = document.getElementById('cus-name').value;
-            const phone = document.getElementById('cus-phone').value;
-            const address = document.getElementById('cus-address').value;
+            const name = document.getElementById('cus-name').value.trim();
+            const phone = document.getElementById('cus-phone').value.trim();
+            const address = document.getElementById('cus-address').value.trim();
 
             if (cart.length === 0) { alert('Vui lòng thêm sản phẩm vào giỏ hàng trước!'); return; }
-            if (!name || !phone || !address) { alert('Vui lòng điền đầy đủ thông tin giao hàng!'); return; }
+            if (!name || !phone || !address) { alert('Vui lòng điền đầy đủ thông tin nhận hàng!'); return; }
 
             let totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            let orderContent = "DH_" + phone.trim();
+            let orderContent = "DH " + phone;
 
+            // Đọc cấu hình ngân hàng thô từ biến shopConfig của Sheet gửi về
+            let bankID = shopConfig.QR_BankID || "MB";
+            let accountNo = shopConfig.QR_STK || "0987654321";
+            let accountName = shopConfig.QR_TenChuTK || "NGUYEN VAN DU HANE";
+
+            // Đổ text thô vào bảng hóa đơn popup
+            document.getElementById('lblBank').innerText = bankID;
+            document.getElementById('lblSTK').innerText = accountNo;
+            document.getElementById('lblTenTK').innerText = accountName;
             document.getElementById('modal-money').innerText = totalAmount.toLocaleString('vi-VN') + ' đ';
             document.getElementById('modal-content').innerText = orderContent;
 
-            let bankID = "MB"; 
-            let accountNo = "0987654321"; 
+            // Tạo mã QR ngân hàng động VietQR công nghệ cao
             let qrUrl = `https://img.vietqr.io/image/${bankID}-${accountNo}-compact.png?amount=${totalAmount}&addInfo=${encodeURIComponent(orderContent)}`;
-
-            document.getElementById('qrCodeBox').innerHTML = `<img src="${qrUrl}" alt="Mã QR VietQR" style="width:100%; height:100%; object-fit:contain;">`;
+            document.getElementById('qrCodeBox').innerHTML = `<img src="${qrUrl}" alt="Mã QR VietQR">`;
+            
             document.getElementById('qrModal').style.display = 'flex';
         }
 
-        // ĐIỀU HƯỚNG GIAO DIỆN MODAL POPUP
+        // HỆ THỐNG POPUP ĐĂNG KÝ / ĐĂNG NHẬP
         function openAuthModal(mode) {
             currentAuthMode = mode;
             updateAuthModalUI();
@@ -516,107 +656,65 @@
             }
         }
 
-        // XỬ LÝ KẾT NỐI API ĐĂNG KÝ / ĐĂNG NHẬP VỚI GOOGLE APPS SCRIPT
-        // XỬ LÝ KẾT NỐI API ĐĂNG KÝ / ĐĂNG NHẬP VỚI GOOGLE APPS SCRIPT
-function handleAuthSubmit() {
-    const user = document.getElementById('authUsername').value.trim();
-    const pass = document.getElementById('authPassword').value.trim();
-    const loadingText = document.getElementById('authLoadingText');
-    const btnSubmit = document.getElementById('btnSubmitAuth');
+        function handleAuthSubmit() {
+            const user = document.getElementById('authUsername').value.trim();
+            const pass = document.getElementById('authPassword').value.trim();
+            const loadingText = document.getElementById('authLoadingText');
+            const btnSubmit = document.getElementById('btnSubmitAuth');
 
-    if (!user || !pass) { alert("Vui lòng điền đầy đủ tài khoản và mật khẩu!"); return; }
+            if (!user || !pass) { alert("Vui lòng điền đầy đủ tài khoản và mật khẩu!"); return; }
 
-    loadingText.style.display = 'block';
-    btnSubmit.disabled = true;
+            loadingText.style.display = 'block';
+            btnSubmit.disabled = true;
 
-    const formData = new URLSearchParams();
-    formData.append('action', currentAuthMode);
-    formData.append('username', user);
-    formData.append('password', pass);
+            const formData = new URLSearchParams();
+            formData.append('action', currentAuthMode);
+            formData.append('username', user);
+            formData.append('password', pass);
 
-    fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: formData.toString()
-    })
-    .then(res => res.json())
-    .then(response => {
-        loadingText.style.display = 'none';
-        btnSubmit.disabled = false;
+            fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(response => {
+                loadingText.style.display = 'none';
+                btnSubmit.disabled = false;
 
-        if (response.status === "success") {
-            alert(response.message);
-            closeModal('authModal');
-            
-            // ✨ DÒNG CODE MỚI: Xóa sạch dữ liệu ô input ngay khi Đăng ký/Đăng nhập thành công
-            document.getElementById('authUsername').value = '';
-            document.getElementById('authPassword').value = '';
-            
-            if (currentAuthMode === "login") {
-                document.getElementById('authBoxUnlogged').style.display = 'none';
-                document.getElementById('authBoxLoggedIn').style.display = 'block';
-                document.getElementById('txtUsername').innerText = user;
-            } else {
-                openAuthModal('login');
-            }
-        } else {
-            alert("Thất bại: " + response.message);
+                if (response.status === "success") {
+                    alert(response.message);
+                    closeModal('authModal');
+                    
+                    document.getElementById('authUsername').value = '';
+                    document.getElementById('authPassword').value = '';
+                    
+                    if (currentAuthMode === "login") {
+                        document.getElementById('authBoxUnlogged').style.display = 'none';
+                        document.getElementById('authBoxLoggedIn').style.display = 'block';
+                        document.getElementById('txtUsername').innerText = user;
+                    } else {
+                        openAuthModal('login');
+                    }
+                } else {
+                    alert("Thất bại: " + response.message);
+                }
+            })
+            .catch(err => {
+                loadingText.style.display = 'none';
+                btnSubmit.disabled = false;
+                alert("Lỗi kết nối Server Apps Script: " + err);
+            });
         }
-    })
-    .catch(err => {
-        loadingText.style.display = 'none';
-        btnSubmit.disabled = false;
-        alert("Lỗi kết nối Server Apps Script: " + err);
-    });
-}
+
         function logoutUser() {
             document.getElementById('authBoxUnlogged').style.display = 'block';
             document.getElementById('authBoxLoggedIn').style.display = 'none';
             document.getElementById('txtUsername').innerText = "Khách";
+            document.getElementById('authUsername').value = '';
+            document.getElementById('authPassword').value = '';
             alert("Đã đăng xuất tài khoản!");
         }
-        
-let shopConfig = {};
-// 1. HÀM TỰ ĐỘNG LOAD SẢN PHẨM TỪ GOOGLE SHEET KHI MỞ WEB
-window.onload = function() {
-    fetch(APPS_SCRIPT_URL)
-    .then(res => res.json())
-    .then(data => {
-        shopConfig = data.config;
-        renderProducts(data.products);
-        // Cập nhật tên shop từ Sheet
-        document.querySelector('.shop-logo').innerText = shopConfig.TenShop;
-    });
-};
-
-// 2. HÀM HIỂN THỊ SẢN PHẨM (Xử lý cả phần hết hàng)
-function renderProducts(products) {
-    const grid = document.getElementById('products-grid');
-    grid.innerHTML = '';
-    
-    products.forEach(p => {
-        const isOutOfStock = p.stock === false || p.stock === "FALSE";
-        grid.innerHTML += `
-            <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}">
-                <div class="product-img-box">
-                    <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
-                    ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
-                </div>
-                <div class="product-info">
-                    <h3>${p.name}</h3>
-                    <p class="price">${Number(p.price).toLocaleString()} đ</p>
-                    <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} 
-                        onclick="addToCart('${p.name}', ${p.price})">
-                        ${isOutOfStock ? 'Tạm hết hàng' : 'Thêm vào giỏ'}
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-}
-        
     </script>
 </body>
 </html>
