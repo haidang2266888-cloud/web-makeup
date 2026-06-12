@@ -676,34 +676,44 @@
         return;
     }
     
+    // Tạo mảng tạm để tối ưu hóa tốc độ render giao diện
+    let htmlContent = '';
+    
     products.forEach(p => {
-        const isOutOfStock = p.stock === false || p.stock === "FALSE";
+        // Cập nhật lại logic check kho hàng dựa theo biến stock (true/false) chuẩn từ Code.gs
+        const isOutOfStock = p.stock === false;
         
-        // Chuẩn hóa chuỗi mô tả để tránh lỗi cú pháp JS khi chuỗi có dấu xuống dòng hoặc ký tự đặc biệt
-        const safeMota = p.mota ? p.mota.replace(/`/g, '\\`').replace(/\n/g, '\\n') : '';
+        // ĐÃ SỬA: Đổi từ p.mota sang p.desc để khớp 100% với dữ liệu từ file Code.gs mới
+        const safeMota = p.desc ? p.desc.replace(/`/g, '\\`').replace(/\n/g, '\\n') : '';
         const safeVideo = p.video || '';
         
-        grid.innerHTML += `
+        // Xử lý chuỗi tên sản phẩm an toàn nếu lỡ có chứa dấu nháy đơn (')
+        const safeName = p.name ? p.name.replace(/'/g, "\\'") : "Sản phẩm chưa đặt tên";
+        
+        htmlContent += `
             <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}">
                 <div class="product-img-box" style="cursor: pointer;" 
-                     onclick="openProductDetail('${p.id || ''}', '${p.name}', ${p.price}, '${p.img}', '${safeVideo}', \`${safeMota}\`)">
+                     onclick="openProductDetail('${p.id || ''}', '${safeName}', ${p.price}, '${p.img}', '${safeVideo}', \`${safeMota}\`)">
                     <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">
                     ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
                 </div>
                 <div class="product-info">
                     <div class="product-title" style="cursor: pointer;" 
-                         onclick="openProductDetail('${p.id || ''}', '${p.name}', ${p.price}, '${p.img}', '${safeVideo}', \`${safeMota}\`)">
+                         onclick="openProductDetail('${p.id || ''}', '${safeName}', ${p.price}, '${p.img}', '${safeVideo}', \`${safeMota}\`)">
                         ${p.name}
                     </div>
                     <div class="product-price">${Number(p.price).toLocaleString('vi-VN')} đ</div>
                     <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} 
-                        onclick="addToCart('${p.name}', ${p.price})">
+                        onclick="addToCart('${safeName}', ${p.price})">
                         ${isOutOfStock ? 'Tạm Hết Hàng' : 'Thêm vào giỏ'}
                     </button>
                 </div>
             </div>
         `;
     });
+    
+    // Đổ toàn bộ dữ liệu ra màn hình một lần duy nhất
+    grid.innerHTML = htmlContent;
 }
         // QUẢN LÝ GIỎ HÀNG
         function addToCart(name, price) {
