@@ -676,44 +676,53 @@
         return;
     }
     
-    // Tạo mảng tạm để tối ưu hóa tốc độ render giao diện
-    let htmlContent = '';
-    
-    products.forEach(p => {
-        // Cập nhật lại logic check kho hàng dựa theo biến stock (true/false) chuẩn từ Code.gs
+    // Duyệt qua từng sản phẩm để tạo thẻ HTML bằng DOM an toàn
+    products.forEach((p, index) => {
         const isOutOfStock = p.stock === false;
         
-        // ĐÃ SỬA: Đổi từ p.mota sang p.desc để khớp 100% với dữ liệu từ file Code.gs mới
-        const safeMota = p.desc ? p.desc.replace(/`/g, '\\`').replace(/\n/g, '\\n') : '';
-        const safeVideo = p.video || '';
+        // GIẢI PHÁP AN TOÀN: Lưu trữ object sản phẩm vào bộ nhớ window tạm thời
+        // Cách này giúp giữ nguyên vẹn 100% mọi ký tự đặc biệt như dấu "—", dấu nháy, xuống dòng từ Sheet
+        window[`prod_${index}`] = p;
         
-        // Xử lý chuỗi tên sản phẩm an toàn nếu lỡ có chứa dấu nháy đơn (')
-        const safeName = p.name ? p.name.replace(/'/g, "\\'") : "Sản phẩm chưa đặt tên";
+        const card = document.createElement('div');
+        card.className = `product-card ${isOutOfStock ? 'out-of-stock' : ''}`;
         
-        htmlContent += `
-            <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}">
-                <div class="product-img-box" style="cursor: pointer;" 
-                     onclick="openProductDetail('${p.id || ''}', '${safeName}', ${p.price}, '${p.img}', '${safeVideo}', \`${safeMota}\`)">
-                    <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">
-                    ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
+        card.innerHTML = `
+            <div class="product-img-box" style="cursor: pointer;" onclick="openProductDetailFromIndex(${index})">
+                <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">
+                ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
+            </div>
+            <div class="product-info">
+                <div class="product-title" style="cursor: pointer;" onclick="openProductDetailFromIndex(${index})">
+                    ${p.name}
                 </div>
-                <div class="product-info">
-                    <div class="product-title" style="cursor: pointer;" 
-                         onclick="openProductDetail('${p.id || ''}', '${safeName}', ${p.price}, '${p.img}', '${safeVideo}', \`${safeMota}\`)">
-                        ${p.name}
-                    </div>
-                    <div class="product-price">${Number(p.price).toLocaleString('vi-VN')} đ</div>
-                    <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} 
-                        onclick="addToCart('${safeName}', ${p.price})">
-                        ${isOutOfStock ? 'Tạm Hết Hàng' : 'Thêm vào giỏ'}
-                    </button>
-                </div>
+                <div class="product-price">${Number(p.price).toLocaleString('vi-VN')} đ</div>
+                <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} id="btn_${index}">
+                    ${isOutOfStock ? 'Tạm Hết Hàng' : 'Thêm vào giỏ'}
+                </button>
             </div>
         `;
+        
+        grid.appendChild(card);
+        
+        // Gán sự kiện click nút mua hàng độc lập, không sợ lỗi cú pháp chuỗi
+        const btnBuy = card.querySelector(`#btn_${index}`);
+        if (btnBuy && !isOutOfStock) {
+            btnBuy.onclick = function() {
+                // Sử dụng hàm an toàn bọc nháy để truyền tên sản phẩm vào giỏ hàng
+                addToCart(p.name, p.price);
+            };
+        }
     });
-    
-    // Đổ toàn bộ dữ liệu ra màn hình một lần duy nhất
-    grid.innerHTML = htmlContent;
+}
+
+// HÀM TRUNG GIAN BẮT BUỘC: Nhận index từ giao diện để bốc trọn vẹn data gốc truyền sang popup chi tiết
+function openProductDetailFromIndex(index) {
+    const p = window[`prod_${index}`];
+    if (p) {
+        // Truyền đầy đủ 6 tham số sang hàm hiển thị Modal mà không sợ bị gãy chuỗi ký tự
+        openProductDetail(p.id, p.name, p.price, p.img, p.video, p.desc);
+    }
 }
         // QUẢN LÝ GIỎ HÀNG
         function addToCart(name, price) {
