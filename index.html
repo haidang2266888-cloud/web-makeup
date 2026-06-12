@@ -756,9 +756,9 @@
         
             function confirmPayment() {
     // 1. Thu thập dữ liệu từ các ô Input trong form thông tin nhận hàng của bro
-    const nameInput = document.getElementById('cus_name') || document.querySelector('input[placeholder*="Họ và tên"]');
-    const phoneInput = document.getElementById('cus_phone') || document.querySelector('input[placeholder*="Số điện thoại"]');
-    const addressInput = document.getElementById('cus_address') || document.querySelector('input[placeholder*="Địa chỉ"]');
+    const nameInput = document.getElementById('cus-name') || document.querySelector('input[placeholder*="Họ và tên"]');
+    const phoneInput = document.getElementById('cus-phone') || document.querySelector('input[placeholder*="Số điện thoại"]');
+    const addressInput = document.getElementById('cus-address') || document.querySelector('input[placeholder*="Địa chỉ"]');
     
     // Lấy thông tin đơn hàng hiện tại
     const orderIdText = document.getElementById('order-id-text') ? document.getElementById('order-id-text').innerText : "DH" + Date.now().toString().slice(-6);
