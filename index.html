@@ -444,6 +444,73 @@
     cursor: pointer;
     margin-top: 15px;
 }
+
+/* ====================================================================
+   CSS CHO POPUP CHI TIẾT SẢN PHẨM & FORM BÌNH LUẬN (MỚI)
+   ==================================================================== */
+.product-detail-modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 24px;
+    max-width: 650px;
+    width: 100%;
+    text-align: left;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.product-detail-modal-content h3 {
+    margin-top: 0;
+    color: var(--text-main);
+    font-size: 24px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.review-section {
+    margin-top: 25px;
+    border-top: 1px dashed var(--accent-color);
+    padding-top: 15px;
+}
+
+.review-item {
+    background-color: #fffaf0;
+    padding: 10px 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border: 1px solid #ffebeb;
+}
+
+.review-item strong {
+    color: var(--primary-color);
+}
+
+.review-form input, .review-form textarea {
+    width: 100%;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.btn-submit-review {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-submit-review:hover {
+    background-color: var(--primary-hover);
+} 
     </style>
 </head>
 <body>
@@ -536,6 +603,37 @@
         </div>
     </div>
 
+    <div class="custom-modal" id="productDetailModal">
+        <div class="product-detail-modal-content">
+            <h3 id="modalProductName">Tên sản phẩm</h3>
+            
+            <div id="modalProductVideoContainer" style="margin-bottom: 20px;"></div>
+            
+            <strong>📝 Ghi chú từ shop (Mô tả):</strong>
+            <p id="modalProductDesc" style="color: var(--text-main); background: #fffcfc; padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); line-height: 1.6; margin-top: 8px;">
+                Đang tải dữ liệu mô tả...
+            </p>
+            
+            <div class="review-section">
+                <h4>💬 Khách hàng đánh giá (<span id="txtReviewCount">0</span>)</h4>
+                <div id="modalReviewList" style="max-height: 150px; overflow-y: auto; margin-bottom: 15px;">
+                    <p style="color: #aaa; font-style: italic; text-align: center;">Chưa có bình luận nào cho sản phẩm này.</p>
+                </div>
+                
+                <div class="review-form">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="txtReviewerName" placeholder="Tên của bạn...">
+                    </div>
+                    <textarea id="txtReviewContent" rows="2" placeholder="Chia sẻ cảm nhận thực tế của bạn về sản phẩm này..."></textarea>
+                    <button class="btn-submit-review" id="btnSubmitReview" onclick="handleReviewSubmit()">Gửi bình luận</button>
+                </div>
+            </div>
+            
+            <br>
+            <button class="btn-close-modal" style="margin-top: 0; width: 100%;" onclick="closeModal('productDetailModal')">Đóng cửa sổ xem chi tiết</button>
+        </div>
+    </div>
+
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbRr3OTPxRjkVHL5hG7qu4h4ohsfGzjKzhGH3NHosU67I98vuNh2cKmzq-t3zeL8A9bw/exec"; 
 
@@ -570,35 +668,43 @@
 
         // RENDER DANH SÁCH SẢN PHẨM (Xử lý ảnh thực tế & Đánh dấu hết hàng)
         function renderProducts(products) {
-            const grid = document.getElementById('products-grid');
-            grid.innerHTML = '';
-            
-            if(!products || products.length === 0) {
-                grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#aaa; font-style:italic;">Hiện tại shop chưa đăng sản phẩm nào.</p>';
-                return;
-            }
-            
-            products.forEach(p => {
-                const isOutOfStock = p.stock === false || p.stock === "FALSE";
-                grid.innerHTML += `
-                    <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}">
-                        <div class="product-img-box">
-                            <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">
-                            ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
-                        </div>
-                        <div class="product-info">
-                            <div class="product-title">${p.name}</div>
-                            <div class="product-price">${Number(p.price).toLocaleString('vi-VN')} đ</div>
-                            <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} 
-                                onclick="addToCart('${p.name}', ${p.price})">
-                                ${isOutOfStock ? 'Tạm Hết Hàng' : 'Thêm vào giỏ'}
-                            </button>
-                        </div>
+    const grid = document.getElementById('products-grid');
+    grid.innerHTML = '';
+    
+    if(!products || products.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#aaa; font-style:italic;">Hiện tại shop chưa đăng sản phẩm nào.</p>';
+        return;
+    }
+    
+    products.forEach(p => {
+        const isOutOfStock = p.stock === false || p.stock === "FALSE";
+        
+        // Chuẩn hóa chuỗi mô tả để tránh lỗi cú pháp JS khi chuỗi có dấu xuống dòng hoặc ký tự đặc biệt
+        const safeMota = p.mota ? p.mota.replace(/`/g, '\\`').replace(/\n/g, '\\n') : '';
+        const safeVideo = p.video || '';
+        
+        grid.innerHTML += `
+            <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}">
+                <div class="product-img-box" style="cursor: pointer;" 
+                     onclick="openProductDetail('${p.id || ''}', '${p.name}', ${p.price}, '${p.img}', '${safeVideo}', \`${safeMota}\`)">
+                    <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">
+                    ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
+                </div>
+                <div class="product-info">
+                    <div class="product-title" style="cursor: pointer;" 
+                         onclick="openProductDetail('${p.id || ''}', '${p.name}', ${p.price}, '${p.img}', '${safeVideo}', \`${safeMota}\`)">
+                        ${p.name}
                     </div>
-                `;
-            });
-        }
-
+                    <div class="product-price">${Number(p.price).toLocaleString('vi-VN')} đ</div>
+                    <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} 
+                        onclick="addToCart('${p.name}', ${p.price})">
+                        ${isOutOfStock ? 'Tạm Hết Hàng' : 'Thêm vào giỏ'}
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
         // QUẢN LÝ GIỎ HÀNG
         function addToCart(name, price) {
             const existingItem = cart.find(item => item.name === name);
@@ -822,6 +928,108 @@
         confirmBtn.disabled = false;
     });
 }
+
+        // ====================================================================
+        // LOGIC XỬ LÝ CHI TIẾT SẢN PHẨM & BÌNH LUẬN ĐỒNG BỘ GOOGLE SHEET (MỚI)
+        // ====================================================================
+        let activeProductId = ""; // Biến toàn cục ghi nhớ sản phẩm đang xem để đánh giá
+
+        function openProductDetail(id, name, price, img, videoUrl, description) {
+            activeProductId = id;
+            
+            // 1. Đổ dữ liệu Tên và nội dung cột MoTa (Cột F) lên giao diện công khai
+            document.getElementById('modalProductName').innerText = name;
+            document.getElementById('modalProductDesc').innerText = description && description.trim() !== "" ? description : "Sản phẩm trang điểm cao cấp chính hãng từ Duhane Makeup Tools.";
+            
+            // 2. Xử lý hiển thị Video Review thực tế (Cột E)
+            const videoBox = document.getElementById('modalProductVideoContainer');
+            videoBox.innerHTML = ""; // Reset sạch tránh chồng chéo dữ liệu cũ
+            
+            if (videoUrl && videoUrl !== "undefined" && videoUrl.trim() !== "") {
+                let embedUrl = videoUrl;
+                
+                // Tự động chuyển đổi các loại link YouTube thường thành link embed chạy trực tiếp trên web
+                if (embedUrl.includes("watch?v=")) {
+                    embedUrl = embedUrl.replace("watch?v=", "embed/");
+                } else if (embedUrl.includes("youtu.be/")) {
+                    embedUrl = embedUrl.replace("youtu.be/", "youtube.com/embed/");
+                }
+                
+                videoBox.innerHTML = `
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                `;
+            } else {
+                // Nếu sản phẩm trống link video, tự động hiện ảnh sản phẩm to thay thế
+                videoBox.innerHTML = `<img src="${img}" style="width:100%; max-height:280px; object-fit:cover; border-radius:16px;" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">`;
+            }
+            
+            // 3. Mặc định tạo dữ liệu bình luận trống (Sau này bro có thể nâng cấp thêm tính năng fetch bình luận)
+            document.getElementById('modalReviewList').innerHTML = '<p style="color: #aaa; font-style: italic; text-align: center;">Chưa có bình luận nào. Hãy là người đầu tiên đánh giá!</p>';
+            document.getElementById('txtReviewCount').innerText = "0";
+            
+            // Hiện Modal lên màn hình
+            document.getElementById('productDetailModal').style.display = 'flex';
+        }
+
+        // XỬ LÝ LƯU BÌNH LUẬN KHÁCH HÀNG SANG TAB REVIEWS TRÊN SHEET
+        function handleReviewSubmit() {
+            const reviewerName = document.getElementById('txtReviewerName').value.trim();
+            const reviewContent = document.getElementById('txtReviewContent').value.trim();
+            const btnReview = document.getElementById('btnSubmitReview');
+
+            if (!reviewerName || !reviewContent) { alert("Vui lòng nhập đầy đủ tên và nội dung đánh giá của bạn!"); return; }
+
+            btnReview.innerText = "Đang gửi...";
+            btnReview.disabled = true;
+
+            const payload = {
+                action: "save_review",
+                orderData: { // Tận dụng chung cấu trúc orderData để gửi dữ liệu thô sang Apps Script
+                    orderId: activeProductId, // Sử dụng làm mã sản phẩm
+                    customerName: reviewerName,
+                    customerPhone: reviewContent, // Lưu nội dung bình luận vào cột thứ 4
+                    customerAddress: "Đánh giá Web",
+                    orderDetails: "Review",
+                    totalAmount: "0"
+                }
+            };
+
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                alert("🎉 Cảm ơn bạn đã để lại bình luận thực tế đóng góp phát triển Duhane Shop!");
+                
+                // Hiển thị trực tiếp bình luận vừa viết lên giao diện web ngay lập tức
+                const reviewList = document.getElementById('modalReviewList');
+                if (reviewList.innerHTML.includes("Chưa có bình luận")) { reviewList.innerHTML = ""; }
+                
+                reviewList.innerHTML += `
+                    <div class="review-item">
+                        <strong>✨ ${reviewerName}:</strong> <span>${reviewContent}</span>
+                    </div>
+                `;
+                
+                // Tăng số đếm lượt đánh giá
+                let countSpan = document.getElementById('txtReviewCount');
+                countSpan.innerText = parseInt(countSpan.innerText) + 1;
+
+                // Xóa trắng ô nhập dữ liệu
+                document.getElementById('txtReviewContent').value = "";
+                btnReview.innerText = "Gửi bình luận";
+                btnReview.disabled = false;
+            })
+            .catch(err => {
+                alert("Lỗi kết nối lưu đánh giá: " + err);
+                btnReview.innerText = "Gửi bình luận";
+                btnReview.disabled = false;
+            });
+        }
     </script>
 </body>
 </html>
