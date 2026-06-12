@@ -413,6 +413,37 @@
            height: 100%;
            object-fit: contain;
         }
+
+        .btn-confirm {
+    width: 100%;
+    background-color: #28a745; /* Màu xanh lá biểu thị thành công */
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.3s;
+}
+
+.btn-confirm:hover {
+    background-color: #218838; /* Tối màu hơn một chút khi di chuột vào */
+}
+
+/* Định dạng lại nút đóng cửa sổ cũ một chút cho đồng bộ */
+.btn-close-modal {
+    width: 100%;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 15px;
+}
     </style>
 </head>
 <body>
@@ -501,6 +532,7 @@
             </div>
 
             <button class="btn-close-modal" onclick="closeModal('qrModal')">Đóng cửa sổ</button>
+            <button onclick="confirmPayment()" class="btn-confirm">Tôi đã chuyển khoản thành công</button>
         </div>
     </div>
 
@@ -721,6 +753,75 @@
             document.getElementById('authPassword').value = '';
             alert("Đã đăng xuất tài khoản!");
         }
+        
+            function confirmPayment() {
+    // 1. Thu thập dữ liệu từ các ô Input trong form thông tin nhận hàng của bro
+    const nameInput = document.getElementById('cus_name') || document.querySelector('input[placeholder*="Họ và tên"]');
+    const phoneInput = document.getElementById('cus_phone') || document.querySelector('input[placeholder*="Số điện thoại"]');
+    const addressInput = document.getElementById('cus_address') || document.querySelector('input[placeholder*="Địa chỉ"]');
+    
+    // Lấy thông tin đơn hàng hiện tại
+    const orderIdText = document.getElementById('order-id-text') ? document.getElementById('order-id-text').innerText : "DH" + Date.now().toString().slice(-6);
+    const totalAmountText = document.querySelector('.total-price') ? document.querySelector('.total-price').innerText : "199.000đ";
+    
+    // Gom danh sách sản phẩm trong giỏ (Ví dụ tạm thời, bro có thể map từ mảng cart của bro)
+    let orderDetails = "";
+    if (typeof cart !== 'undefined' && cart.length > 0) {
+        orderDetails = cart.map(item => `${item.name} (x${item.quantity})`).join(', ');
+    } else {
+        orderDetails = "Đơn hàng hệ thống"; 
+    }
+
+    // Kiểm tra nếu khách chưa điền thông tin mà đã bấm chuyển khoản
+    if (!nameInput.value || !phoneInput.value || !addressInput.value) {
+        alert("Bro vui lòng điền đầy đủ Thông tin nhận hàng (Tên, SĐT, Địa chỉ) trước khi xác nhận nhé!");
+        return;
+    }
+
+    // Đổi chữ trên nút để tránh khách bấm liên tiếp nhiều lần gây trùng đơn
+    const confirmBtn = document.querySelector('.btn-confirm');
+    confirmBtn.innerText = "Đang xử lý đơn hàng...";
+    confirmBtn.disabled = true;
+
+    // 2. Cấu trúc dữ liệu đúng như hàm doPost trong Apps Script cần nhận
+    const payload = {
+        action: "save_order",
+        orderData: {
+            orderId: orderIdText,
+            customerName: nameInput.value.trim(),
+            customerPhone: phoneInput.value.trim(),
+            customerAddress: addressInput.value.trim(),
+            orderDetails: orderDetails,
+            totalAmount: totalAmountText
+        }
+    };
+
+    // 3. Tiến hành gửi dữ liệu lên Google Sheet
+    // THAY URL_WEB_APP_CỦA_BRO bằng link Web App Apps Script sau khi deploy bản mới nhất nhé!
+    fetch('URL_WEB_APP_CỦA_BRO', {
+        method: 'POST',
+        mode: 'no-cors', // Dùng no-cors để tránh lỗi chặn chính sách trình duyệt khi gọi Apps Script
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(() => {
+        alert("🎉 Chúc mừng bro! Đơn hàng đã được gửi lên hệ thống thành công. Shop sẽ alo xác nhận liền nha!");
+        
+        // Xóa giỏ hàng và đóng modal
+        if (typeof cart !== 'undefined') {
+            cart = [];
+            if (typeof updateCartUI === 'function') updateCartUI();
+        }
+        closeModal('qrModal');
+    })
+    .catch(err => {
+        alert("Có lỗi xảy ra khi gửi đơn: " + err);
+        confirmBtn.innerText = "Tôi đã chuyển khoản thành công";
+        confirmBtn.disabled = false;
+    });
+}
     </script>
 </body>
 </html>
