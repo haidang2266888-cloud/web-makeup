@@ -640,6 +640,7 @@
         let cart = [];
         let currentAuthMode = "login";
         let shopConfig = {}; // Lưu cấu hình QR động lấy từ Sheet
+        let allComments = []; // Biến toàn cục lưu tất cả bình luận từ Sheet về
 
         // 🌟 TỰ ĐỘNG ĐỒNG BỘ DỮ LIỆU TỪ SHEET KHI MỞ TRANG WEB
         window.onload = function() {
@@ -647,7 +648,8 @@
             .then(res => res.json())
             .then(data => {
                 if(data.status === "success") {
-                    shopConfig = data.config;
+                    shopConfig = data.config || {};
+                    allComments = data.comments || []; // Lưu danh sách bình luận trả về từ doGet
                     
                     // Cập nhật thương hiệu tĩnh trên giao diện
                     document.getElementById('txtShopLogo').innerText = shopConfig.TenShop || "DUHANE SHOP";
@@ -666,64 +668,57 @@
             });
         };
 
-        // RENDER DANH SÁCH SẢN PHẨM (Xử lý ảnh thực tế & Đánh dấu hết hàng)
+        // RENDER DANH SÁCH SẢN PHẨM
         function renderProducts(products) {
-    const grid = document.getElementById('products-grid');
-    grid.innerHTML = '';
-    
-    if(!products || products.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#aaa; font-style:italic;">Hiện tại shop chưa đăng sản phẩm nào.</p>';
-        return;
-    }
-    
-    // Duyệt qua từng sản phẩm để tạo thẻ HTML bằng DOM an toàn
-    products.forEach((p, index) => {
-        const isOutOfStock = p.stock === false;
-        
-        // GIẢI PHÁP AN TOÀN: Lưu trữ object sản phẩm vào bộ nhớ window tạm thời
-        // Cách này giúp giữ nguyên vẹn 100% mọi ký tự đặc biệt như dấu "—", dấu nháy, xuống dòng từ Sheet
-        window[`prod_${index}`] = p;
-        
-        const card = document.createElement('div');
-        card.className = `product-card ${isOutOfStock ? 'out-of-stock' : ''}`;
-        
-        card.innerHTML = `
-            <div class="product-img-box" style="cursor: pointer;" onclick="openProductDetailFromIndex(${index})">
-                <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">
-                ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
-            </div>
-            <div class="product-info">
-                <div class="product-title" style="cursor: pointer;" onclick="openProductDetailFromIndex(${index})">
-                    ${p.name}
-                </div>
-                <div class="product-price">${Number(p.price).toLocaleString('vi-VN')} đ</div>
-                <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} id="btn_${index}">
-                    ${isOutOfStock ? 'Tạm Hết Hàng' : 'Thêm vào giỏ'}
-                </button>
-            </div>
-        `;
-        
-        grid.appendChild(card);
-        
-        // Gán sự kiện click nút mua hàng độc lập, không sợ lỗi cú pháp chuỗi
-        const btnBuy = card.querySelector(`#btn_${index}`);
-        if (btnBuy && !isOutOfStock) {
-            btnBuy.onclick = function() {
-                // Sử dụng hàm an toàn bọc nháy để truyền tên sản phẩm vào giỏ hàng
-                addToCart(p.name, p.price);
-            };
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            
+            if(!products || products.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#aaa; font-style:italic;">Hiện tại shop chưa đăng sản phẩm nào.</p>';
+                return;
+            }
+            
+            products.forEach((p, index) => {
+                const isOutOfStock = p.stock === false;
+                window[`prod_${index}`] = p;
+                
+                const card = document.createElement('div');
+                card.className = `product-card ${isOutOfStock ? 'out-of-stock' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="product-img-box" style="cursor: pointer;" onclick="openProductDetailFromIndex(${index})">
+                        <img src="${p.img}" onerror="this.src='https://placehold.co/400x400?text=DUHANE+MAKEUP'">
+                        ${isOutOfStock ? '<div class="sold-out-badge">HẾT HÀNG</div>' : ''}
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title" style="cursor: pointer;" onclick="openProductDetailFromIndex(${index})">
+                            ${p.name}
+                        </div>
+                        <div class="product-price">${Number(p.price).toLocaleString('vi-VN')} đ</div>
+                        <button class="btn-buy" ${isOutOfStock ? 'disabled' : ''} id="btn_${index}">
+                            ${isOutOfStock ? 'Tạm Hết Hàng' : 'Thêm vào giỏ'}
+                        </button>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+                
+                const btnBuy = card.querySelector(`#btn_${index}`);
+                if (btnBuy && !isOutOfStock) {
+                    btnBuy.onclick = function() {
+                        addToCart(p.name, p.price);
+                    };
+                }
+            });
         }
-    });
-}
 
-// HÀM TRUNG GIAN BẮT BUỘC: Nhận index từ giao diện để bốc trọn vẹn data gốc truyền sang popup chi tiết
-function openProductDetailFromIndex(index) {
-    const p = window[`prod_${index}`];
-    if (p) {
-        // Truyền đầy đủ 6 tham số sang hàm hiển thị Modal mà không sợ bị gãy chuỗi ký tự
-        openProductDetail(p.id, p.name, p.price, p.img, p.video, p.desc);
-    }
-}
+        function openProductDetailFromIndex(index) {
+            const p = window[`prod_${index}`];
+            if (p) {
+                openProductDetail(p.id, p.name, p.price, p.img, p.video, p.desc);
+            }
+        }
+
         // QUẢN LÝ GIỎ HÀNG
         function addToCart(name, price) {
             const existingItem = cart.find(item => item.name === name);
@@ -756,7 +751,7 @@ function openProductDetailFromIndex(index) {
             totalPriceSpan.innerText = total.toLocaleString('vi-VN') + ' đ';
         }
 
-        // XỬ LÝ THANH TOÁN VÀ TẠO QR ĐỘNG TỰ ĐỘNG TỪ SHEET
+        // XỬ LÝ THANH TOÁN VÀ TẠO QR ĐỘNG
         function processOrder() {
             const name = document.getElementById('cus-name').value.trim();
             const phone = document.getElementById('cus-phone').value.trim();
@@ -768,19 +763,16 @@ function openProductDetailFromIndex(index) {
             let totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             let orderContent = "DH " + phone;
 
-            // Đọc cấu hình ngân hàng thô từ biến shopConfig của Sheet gửi về
             let bankID = shopConfig.QR_BankID || "MB";
             let accountNo = shopConfig.QR_STK || "0987654321";
             let accountName = shopConfig.QR_TenChuTK || "NGUYEN VAN DU HANE";
 
-            // Đổ text thô vào bảng hóa đơn popup
             document.getElementById('lblBank').innerText = bankID;
             document.getElementById('lblSTK').innerText = accountNo;
             document.getElementById('lblTenTK').innerText = accountName;
             document.getElementById('modal-money').innerText = totalAmount.toLocaleString('vi-VN') + ' đ';
             document.getElementById('modal-content').innerText = orderContent;
 
-            // Tạo mã QR ngân hàng động VietQR công nghệ cao
             let qrUrl = `https://img.vietqr.io/image/${bankID}-${accountNo}-compact.png?amount=${totalAmount}&addInfo=${encodeURIComponent(orderContent)}`;
             document.getElementById('qrCodeBox').innerHTML = `<img src="${qrUrl}" alt="Mã QR VietQR">`;
             
@@ -879,145 +871,39 @@ function openProductDetailFromIndex(index) {
             alert("Đã đăng xuất tài khoản!");
         }
         
-            function confirmPayment() {
-    // 1. Thu thập dữ liệu từ các ô Input trong form thông tin nhận hàng của bro
-    const nameInput = document.getElementById('cus-name') || document.querySelector('input[placeholder*="Họ và tên"]');
-    const phoneInput = document.getElementById('cus-phone') || document.querySelector('input[placeholder*="Số điện thoại"]');
-    const addressInput = document.getElementById('cus-address') || document.querySelector('input[placeholder*="Địa chỉ"]');
-    
-    // Lấy thông tin đơn hàng hiện tại
-    const orderIdText = document.getElementById('order-id-text') ? document.getElementById('order-id-text').innerText : "DH" + Date.now().toString().slice(-6);
-    const totalAmountText = document.querySelector('.total-price') ? document.querySelector('.total-price').innerText : "199.000đ";
-    
-    // Gom danh sách sản phẩm trong giỏ (Ví dụ tạm thời, bro có thể map từ mảng cart của bro)
-    let orderDetails = "";
-    if (typeof cart !== 'undefined' && cart.length > 0) {
-        orderDetails = cart.map(item => `${item.name} (x${item.quantity})`).join(', ');
-    } else {
-        orderDetails = "Đơn hàng hệ thống"; 
-    }
+        function confirmPayment() {
+            const nameInput = document.getElementById('cus-name') || document.querySelector('input[placeholder*="Họ và tên"]');
+            const phoneInput = document.getElementById('cus-phone') || document.querySelector('input[placeholder*="Số điện thoại"]');
+            const addressInput = document.getElementById('cus-address') || document.querySelector('input[placeholder*="Địa chỉ"]');
+            
+            const orderIdText = document.getElementById('order-id-text') ? document.getElementById('order-id-text').innerText : "DH" + Date.now().toString().slice(-6);
+            const totalAmountText = document.querySelector('.total-price') ? document.querySelector('.total-price').innerText : "199.000đ";
+            
+            let orderDetails = "";
+            if (typeof cart !== 'undefined' && cart.length > 0) {
+                orderDetails = cart.map(item => `${item.name} (x${item.quantity})`).join(', ');
+            } else {
+                orderDetails = "Đơn hàng hệ thống"; 
+            }
 
-    // Kiểm tra nếu khách chưa điền thông tin mà đã bấm chuyển khoản
-    if (!nameInput.value || !phoneInput.value || !addressInput.value) {
-        alert("Bro vui lòng điền đầy đủ Thông tin nhận hàng (Tên, SĐT, Địa chỉ) trước khi xác nhận nhé!");
-        return;
-    }
+            if (!nameInput.value || !phoneInput.value || !addressInput.value) {
+                alert("Bro vui lòng điền đầy đủ Thông tin nhận hàng (Tên, SĐT, Địa chỉ) trước khi xác nhận nhé!");
+                return;
+            }
 
-    // Đổi chữ trên nút để tránh khách bấm liên tiếp nhiều lần gây trùng đơn
-    const confirmBtn = document.querySelector('.btn-confirm');
-    confirmBtn.innerText = "Đang xử lý đơn hàng...";
-    confirmBtn.disabled = true;
-
-    // 2. Cấu trúc dữ liệu đúng như hàm doPost trong Apps Script cần nhận
-    const payload = {
-        action: "save_order",
-        orderData: {
-            orderId: orderIdText,
-            customerName: nameInput.value.trim(),
-            customerPhone: phoneInput.value.trim(),
-            customerAddress: addressInput.value.trim(),
-            orderDetails: orderDetails,
-            totalAmount: totalAmountText
-        }
-    };
-
-    // 3. Tiến hành gửi dữ liệu lên Google Sheet
-    // THAY URL_WEB_APP_CỦA_BRO bằng link Web App Apps Script sau khi deploy bản mới nhất nhé!
-    fetch('https://script.google.com/macros/s/AKfycbxbRr3OTPxRjkVHL5hG7qu4h4ohsfGzjKzhGH3NHosU67I98vuNh2cKmzq-t3zeL8A9bw/exec', {
-        method: 'POST',
-        mode: 'no-cors', // Dùng no-cors để tránh lỗi chặn chính sách trình duyệt khi gọi Apps Script
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(() => {
-        alert("🎉 Chúc mừng bro! Đơn hàng đã được gửi lên hệ thống thành công. Shop sẽ alo xác nhận liền nha!");
-        
-        // Xóa giỏ hàng và đóng modal
-        if (typeof cart !== 'undefined') {
-            cart = [];
-            if (typeof updateCartUI === 'function') updateCartUI();
-        }
-        closeModal('qrModal');
-    })
-    .catch(err => {
-        alert("Có lỗi xảy ra khi gửi đơn: " + err);
-        confirmBtn.innerText = "Tôi đã chuyển khoản thành công";
-        confirmBtn.disabled = false;
-    });
-}
-
-        // ====================================================================
-        // LOGIC XỬ LÝ CHI TIẾT SẢN PHẨM & BÌNH LUẬN ĐỒNG BỘ GOOGLE SHEET (MỚI)
-        // ====================================================================
-        let activeProductId = ""; // Biến toàn cục ghi nhớ sản phẩm đang xem để đánh giá
-
-        function openProductDetail(id, name, price, img, videoUrl, description) {
-    activeProductId = id;
-    
-    // 1. Đổ dữ liệu Tên và nội dung cột MoTa (Cột F) lên giao diện công khai
-    document.getElementById('modalProductName').innerText = name;
-    
-    // ĐÃ SỬA: Bỏ chữ mẫu cũ, nếu cột F trống sẽ hiện thông báo chưa có mô tả
-    document.getElementById('modalProductDesc').innerText = (description && description.toString().trim() !== "") ? description : "Sản phẩm hiện chưa có ghi chú hoặc mô tả cụ thể từ shop.";
-    
-    // 2. Xử lý hiển thị Video Review thực tế (Cột E)
-    const videoBox = document.getElementById('modalProductVideoContainer');
-    videoBox.innerHTML = ""; // Reset sạch tránh chồng chéo dữ liệu cũ
-    
-    if (videoUrl && videoUrl !== "undefined" && videoUrl.trim() !== "") {
-        let embedUrl = videoUrl.trim();
-        
-        // --- BỘ LỌC TỰ ĐỘNG CHUYỂN ĐỔI LINK CÁC DẠNG YOUTUBE ĐỂ BẬT TÍNH NĂNG NHÚNG ---
-        if (embedUrl.includes("youtube.com/shorts/")) {
-            // SỬA TẠI ĐÂY: Chuyển link Shorts thành link Embed nhúng iframe chuyên dụng
-            embedUrl = embedUrl.replace("youtube.com/shorts/", "youtube.com/embed/");
-        } else if (embedUrl.includes("watch?v=")) {
-            // Chuyển link YouTube thường thành link nhúng
-            embedUrl = embedUrl.replace("watch?v=", "embed/");
-        } else if (embedUrl.includes("youtu.be/")) {
-            // Chuyển link YouTube rút gọn thành link nhúng
-            embedUrl = embedUrl.replace("youtu.be/", "youtube.com/embed/");
-        }
-        
-        videoBox.innerHTML = `
-            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-            </div>
-        `;
-    } else {
-        // Nếu sản phẩm trống link video, tự động hiện ảnh sản phẩm to thay thế
-        videoBox.innerHTML = `<img src="${img}" style="width:100%; max-height:280px; object-fit:cover; border-radius:16px;" onerror="this.src='https://placehold.co/400x400?text=DUHANE+SHOP'">`;
-    }
-    
-    // 3. Mặc định tạo dữ liệu bình luận trống
-    document.getElementById('modalReviewList').innerHTML = '<p style="color: #aaa; font-style: italic; text-align: center;">Chưa có bình luận nào. Hãy là người đầu tiên đánh giá!</p>';
-    document.getElementById('txtReviewCount').innerText = "0";
-    
-    // Hiện Modal lên màn hình
-    document.getElementById('productDetailModal').style.display = 'flex';
-}
-        // XỬ LÝ LƯU BÌNH LUẬN KHÁCH HÀNG SANG TAB REVIEWS TRÊN SHEET
-        function handleReviewSubmit() {
-            const reviewerName = document.getElementById('txtReviewerName').value.trim();
-            const reviewContent = document.getElementById('txtReviewContent').value.trim();
-            const btnReview = document.getElementById('btnSubmitReview');
-
-            if (!reviewerName || !reviewContent) { alert("Vui lòng nhập đầy đủ tên và nội dung đánh giá của bạn!"); return; }
-
-            btnReview.innerText = "Đang gửi...";
-            btnReview.disabled = true;
+            const confirmBtn = document.querySelector('.btn-confirm');
+            confirmBtn.innerText = "Đang xử lý đơn hàng...";
+            confirmBtn.disabled = true;
 
             const payload = {
-                action: "save_review",
-                orderData: { // Tận dụng chung cấu trúc orderData để gửi dữ liệu thô sang Apps Script
-                    orderId: activeProductId, // Sử dụng làm mã sản phẩm
-                    customerName: reviewerName,
-                    customerPhone: reviewContent, // Lưu nội dung bình luận vào cột thứ 4
-                    customerAddress: "Đánh giá Web",
-                    orderDetails: "Review",
-                    totalAmount: "0"
+                action: "save_order",
+                orderData: {
+                    orderId: orderIdText,
+                    customerName: nameInput.value.trim(),
+                    customerPhone: phoneInput.value.trim(),
+                    customerAddress: addressInput.value.trim(),
+                    orderDetails: orderDetails,
+                    totalAmount: totalAmountText
                 }
             };
 
@@ -1028,23 +914,134 @@ function openProductDetailFromIndex(index) {
                 body: JSON.stringify(payload)
             })
             .then(() => {
-                alert("🎉 Cảm ơn bạn đã để lại bình luận thực tế đóng góp phát triển Duhane Shop!");
+                alert("🎉 Chúc mừng bro! Đơn hàng đã được gửi lên hệ thống thành công. Shop sẽ alo xác nhận liền nha!");
                 
-                // Hiển thị trực tiếp bình luận vừa viết lên giao diện web ngay lập tức
+                if (typeof cart !== 'undefined') {
+                    cart = [];
+                    if (typeof updateCartUI === 'function') updateCartUI();
+                }
+                closeModal('qrModal');
+            })
+            .catch(err => {
+                alert("Có lỗi xảy ra khi gửi đơn: " + err);
+                confirmBtn.innerText = "Tôi đã chuyển khoản thành công";
+                confirmBtn.disabled = false;
+            });
+        }
+
+        // ====================================================================
+        // LOGIC XỬ LÝ CHI TIẾT SẢN PHẨM & BÌNH LUẬN (ĐÃ TỐI ƯU CẢ 2 CHIỀU READ/WRITE)
+        // ====================================================================
+        let activeProductId = ""; 
+
+        function openProductDetail(id, name, price, img, videoUrl, description) {
+            activeProductId = id;
+            
+            document.getElementById('modalProductName').innerText = name;
+            document.getElementById('modalProductDesc').innerText = (description && description.toString().trim() !== "") ? description : "Sản phẩm hiện chưa có ghi chú hoặc mô tả cụ thể từ shop.";
+            
+            // Xử lý hiển thị Video Review
+            const videoBox = document.getElementById('modalProductVideoContainer');
+            videoBox.innerHTML = ""; 
+            
+            if (videoUrl && videoUrl !== "undefined" && videoUrl.trim() !== "") {
+                let embedUrl = videoUrl.trim();
+                if (embedUrl.includes("youtube.com/shorts/")) {
+                    embedUrl = embedUrl.replace("youtube.com/shorts/", "youtube.com/embed/");
+                } else if (embedUrl.includes("watch?v=")) {
+                    embedUrl = embedUrl.replace("watch?v=", "embed/");
+                } else if (embedUrl.includes("youtu.be/")) {
+                    embedUrl = embedUrl.replace("youtu.be/", "youtube.com/embed/");
+                }
+                
+                videoBox.innerHTML = `
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+                `;
+            } else {
+                videoBox.innerHTML = `<img src="${img}" style="width:100%; max-height:280px; object-fit:cover; border-radius:16px;" onerror="this.src='https://placehold.co/400x400?text=DUHANE+SHOP'">`;
+            }
+            
+            // 🌟 MỚI: LỌC VÀ HIỂN THỊ CÁC BÌNH LUẬN CỦA SẢN PHẨM NÀY TỪ SHEET
+            const reviewList = document.getElementById('modalReviewList');
+            reviewList.innerHTML = "";
+            
+            // Lọc ra danh sách bình luận khớp với mã sản phẩm hiện tại (hoặc bình luận chung)
+            const productComments = allComments.filter(c => c.productId === id || c.productId === "Chung" || !c.productId);
+            
+            document.getElementById('txtReviewCount').innerText = productComments.length.toString();
+
+            if (productComments.length === 0) {
+                reviewList.innerHTML = '<p style="color: #aaa; font-style: italic; text-align: center;">Chưa có bình luận nào. Hãy là người đầu tiên đánh giá!</p>';
+            } else {
+                productComments.forEach(c => {
+                    reviewList.innerHTML += `
+                        <div class="review-item" style="margin-bottom: 8px; padding: 6px 10px; background: #f9f9f9; border-radius: 8px;">
+                            <strong>✨ ${c.name}:</strong> <span>${c.comment}</span>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('productDetailModal').style.display = 'flex';
+        }
+
+        // XỬ LÝ LƯU BÌNH LUẬN KHÁCH HÀNG SANG GOOGLE SHEET
+        function handleReviewSubmit() {
+            const reviewerName = document.getElementById('txtReviewerName').value.trim();
+            const reviewContent = document.getElementById('txtReviewContent').value.trim();
+            const btnReview = document.getElementById('btnSubmitReview');
+
+            if (!reviewerName || !reviewContent) { 
+                alert("Vui lòng nhập đầy đủ tên và nội dung đánh giá của bạn!"); 
+                return; 
+            }
+
+            btnReview.innerText = "Đang gửi...";
+            btnReview.disabled = true;
+
+            // ĐÚNG CẤU TRÚC: Gửi dữ liệu theo action save_comment chuẩn cho Code.gs
+            const payload = {
+                action: "save_comment",
+                commentData: {
+                    productId: activeProductId || "Chung",
+                    name: reviewerName,
+                    comment: reviewContent
+                }
+            };
+
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                alert("🎉 Cảm ơn bạn đã để lại bình luận đóng góp phát triển Duhane Shop!");
+                
+                // Cập nhật ngay bình luận mới vào mảng allComments để giữ trạng thái
+                allComments.push({
+                    productId: activeProductId || "Chung",
+                    name: reviewerName,
+                    comment: reviewContent
+                });
+
+                // Hiển thị bình luận vừa viết lên giao diện lập tức
                 const reviewList = document.getElementById('modalReviewList');
-                if (reviewList.innerHTML.includes("Chưa có bình luận")) { reviewList.innerHTML = ""; }
+                if (reviewList.innerHTML.includes("Chưa có bình luận")) { 
+                    reviewList.innerHTML = ""; 
+                }
                 
                 reviewList.innerHTML += `
-                    <div class="review-item">
+                    <div class="review-item" style="margin-bottom: 8px; padding: 6px 10px; background: #f9f9f9; border-radius: 8px;">
                         <strong>✨ ${reviewerName}:</strong> <span>${reviewContent}</span>
                     </div>
                 `;
                 
-                // Tăng số đếm lượt đánh giá
                 let countSpan = document.getElementById('txtReviewCount');
-                countSpan.innerText = parseInt(countSpan.innerText) + 1;
+                countSpan.innerText = (parseInt(countSpan.innerText || "0") + 1).toString();
 
-                // Xóa trắng ô nhập dữ liệu
                 document.getElementById('txtReviewContent').value = "";
                 btnReview.innerText = "Gửi bình luận";
                 btnReview.disabled = false;
